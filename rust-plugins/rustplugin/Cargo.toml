@@ -1,0 +1,15 @@
+[package]
+edition = "2021"
+name = "rustplugin"
+version = "0.1.0"
+
+[dependencies]
+serde = "1.0"
+
+[dependencies.kong-rust-pdk]
+git = "https://github.com/jgramoll/kong-rust-pdk"
+
+[dependencies.tokio]
+features = ["full", "macros", "rt-multi-thread"]
+version = "1.17"
+

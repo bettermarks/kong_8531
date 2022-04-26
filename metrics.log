@@ -1,0 +1,65 @@
+All 8 users hatched.
+
+22:18:33 [WARN] "/js": error sending request for url (http://localhost/js): connection closed before message completed
+22:18:33 [WARN] "/js": error sending request for url (http://localhost/js): connection closed before message completed
+22:18:33 [WARN] "/go": error sending request for url (http://localhost/go): connection closed before message completed
+22:18:33 [WARN] "/go": error sending request for url (http://localhost/go): connection closed before message completed
+22:18:33 [WARN] "/go": error sending request for url (http://localhost/go): connection closed before message completed
+22:18:54 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+22:18:54 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+22:18:56 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+22:18:56 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+
+ === PER REQUEST METRICS ===
+ ------------------------------------------------------------------------------
+ Name                     |        # reqs |        # fails |    req/s |  fail/s
+ ------------------------------------------------------------------------------
+ GET /go                  |        14,312 |     282 (2.0%) |   715.60 |   14.10
+ GET /js                  |        14,320 |     618 (4.3%) |   716.00 |   30.90
+ GET /python              |        14,320 |         2 (0%) |   716.00 |    0.10
+ -------------------------+---------------+----------------+----------+--------
+ Aggregated               |        42,952 |     902 (2.1%) |     2148 |   45.10
+ ------------------------------------------------------------------------------
+ Name                     |    Avg (ms) |        Min |         Max |     Median
+ ------------------------------------------------------------------------------
+ GET /go                  |        0.93 |          1 |         202 |          1
+ GET /js                  |       13.70 |          1 |      20,001 |          2
+ GET /python              |        1.93 |          1 |       2,061 |          1
+ -------------------------+-------------+------------+-------------+-----------
+ Aggregated               |        5.52 |          1 |      20,001 |          1
+ ------------------------------------------------------------------------------
+ Slowest page load within specified percentile of requests (in ms):
+ ------------------------------------------------------------------------------
+ Name                     |    50% |    75% |    98% |    99% |  99.9% | 99.99%
+ ------------------------------------------------------------------------------
+ GET /go                  |      1 |      1 |      3 |      4 |     11 |    200
+ GET /js                  |      2 |      3 |      6 |      8 |     54 | 20,000
+ GET /python              |      1 |      2 |      4 |      5 |     19 |    430
+ -------------------------+--------+--------+--------+--------+--------+-------
+ Aggregated               |      1 |      2 |      5 |      6 |     25 | 20,000
+
+ === ERRORS ===
+ ------------------------------------------------------------------------------
+ Count       | Error
+ ------------------------------------------------------------------------------
+ 608           GET /js: plugin header missing
+ 279           GET /go: plugin header missing
+ 8             GET /js: error sending request /js: operation timed out
+ 3             GET /go: error sending request /go: connection closed before message completed
+ 2             GET /python: plugin header missing
+ 2             GET /js: error sending request /js: connection closed before message completed
+ ------------------------------------------------------------------------------
+ ------------------------------------------------------------------------------
+ Users: 8
+ Target host: http://localhost/
+ Starting: 2022-04-27 00:18:19 - 2022-04-27 00:18:26 (duration: 00:00:07)
+ Running:  2022-04-27 00:18:26 - 2022-04-27 00:18:46 (duration: 00:00:20)
+ Stopping: 2022-04-27 00:18:46 - 2022-04-27 00:18:56 (duration: 00:00:10)
+
+ goose v0.15.2
+ ------------------------------------------------------------------------------
+

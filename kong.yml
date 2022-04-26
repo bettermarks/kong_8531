@@ -1,0 +1,40 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+- name: go
+  url: http://reflector:8080/
+  plugins:
+  - name: goplugin
+  routes:
+  - name: goplugin
+    paths:
+    - /go
+
+- name: rust
+  url: http://reflector:8080/
+  plugins:
+  - name: rustplugin
+  routes:
+  - name: rustplugin
+    paths:
+    - /rust
+
+- name: python
+  url: http://reflector:8080/
+  plugins:
+  - name: pythonplugin
+  routes:
+  - name: pythonplugin
+    paths:
+    - /python
+
+- name: js
+  url: http://reflector:8080/
+  plugins:
+  - name: jsplugin
+  routes:
+  - name: jsplugin
+    paths:
+    - /js
+

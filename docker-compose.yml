@@ -1,0 +1,135 @@
+version: "3.8"
+
+volumes:
+  go_plugins:
+  go_src:
+  go_pkg:
+  go_build_cache:
+  rust_plugins:
+  rust_targets:
+  cargo_cache_git:
+  cargo_cache_registry:
+  python_plugins:
+  pip_cache:
+
+services:
+  reflector:
+    build: reflector
+
+  kong:
+    # image: kong:${KONG_VERSION}
+    build: kong
+    depends_on:
+      reflector:
+        condition: service_started
+      go-plugins:
+          condition: service_completed_successfully
+      rust-plugins:
+          condition: service_completed_successfully
+      python-plugins:
+          condition: service_completed_successfully
+    #   mongo:
+    #       condition: service_started
+    #   kong-db:
+    #       condition: service_healthy
+    #   kong-db-migrations:
+    #       condition: service_completed_successfully
+    # networks:
+    #   - kong
+    deploy:
+      resources:
+        limits:
+          cpus: '0.15'
+          # memory: 1G
+    logging:
+      driver: "json-file" 
+      options:
+        max-size: "50m"
+        max-file: "2"
+    environment:
+      KONG_LOG_LEVEL: info
+      KONG_PROXY_ACCESS_LOG: "off"  #/dev/stdout
+      KONG_PROXY_ERROR_LOG: /dev/stderr
+      KONG_PROXY_LISTEN: 0.0.0.0:8080 reuseport backlog=163840
+      KONG_PORT_MAPS: "80:8080"
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /kong.yml
+
+      KONG_PLUGINSERVER_NAMES: goplugin,rustplugin,pythonplugin,jsplugin
+
+      KONG_PLUGINSERVER_GOPLUGIN_START_CMD: /go-plugins/goplugin -kong-prefix /usr/local/kong/
+      KONG_PLUGINSERVER_GOPLUGIN_QUERY_CMD: /go-plugins/goplugin -dump
+      KONG_PLUGINSERVER_GOPLUGIN_SOCKET: /usr/local/kong/goplugin.socket
+
+      KONG_PLUGINSERVER_RUSTPLUGIN_START_CMD: /rust-plugins/rustplugin -kong-prefix /usr/local/kong/
+      KONG_PLUGINSERVER_RUSTPLUGIN_QUERY_CMD: /rust-plugins/rustplugin -dump
+      KONG_PLUGINSERVER_RUSTPLUGIN_SOCKET: /usr/local/kong/rustplugin.socket
+
+      KONG_PLUGINSERVER_PYTHONPLUGIN_START_CMD: >
+        /python-plugins/pythonplugin
+        --kong-prefix /usr/local/kong/
+        --socket-name /usr/local/kong/pythonplugin.socket
+        --no-lua-style
+        --gevent
+      KONG_PLUGINSERVER_PYTHONPLUGIN_QUERY_CMD: /python-plugins/pythonplugin --dump
+      KONG_PLUGINSERVER_PYTHONPLUGIN_SOCKET: /usr/local/kong/pythonplugin.socket
+
+      KONG_PLUGINSERVER_JSPLUGIN_START_CMD: >
+        /usr/local/bin/kong-js-pluginserver
+        --sock-name jsplugin.socket
+        --plugins-directory /js-plugins
+      KONG_PLUGINSERVER_JSPLUGIN_QUERY_CMD: >
+        /usr/local/bin/kong-js-pluginserver
+        --plugins-directory /js-plugins
+        --dump-all-plugins
+      KONG_PLUGINSERVER_JSPLUGIN_SOCKET: /usr/local/kong/jsplugin.socket
+
+      KONG_PLUGINS: ${KONG_PLUGINS-bundled, goplugin, rustplugin, pythonplugin, jsplugin}
+    volumes:
+      - ./kong.yml:/kong.yml
+      # - ../kong_upsream/kong:/usr/local/share/lua/5.1/kong
+      # if you want to use go-patch
+      # - "${BM_AUTHX_PATH}/bm-authx:/go-plugins/bm-authx"
+      # comment this out if using go-patch
+      - go_plugins:/go-plugins
+      - rust_plugins:/rust-plugins
+      - python_plugins:/python-plugins
+      - ./js-plugins:/js-plugins
+
+    ports:
+      - 80:8080
+      # - 443:8443
+    healthcheck:
+      test: kong health
+      interval: 10s
+      timeout: 2s
+      retries: 3
+
+  go-plugins:
+    build: go-plugins
+    volumes:
+      - ./go-plugins/entrypoint.sh:/entrypoint.sh
+      - ./go-plugins:/src
+      - go_plugins:/go-plugins
+      # cache
+      - go_src:/go/src
+      - go_pkg:/go/pkg
+      - go_build_cache:/root/.cache/go-build
+
+  rust-plugins:
+    build: rust-plugins
+    volumes:
+      - ./rust-plugins/entrypoint.sh:/entrypoint.sh
+      - ./rust-plugins:/src
+      - rust_plugins:/rust-plugins
+      - rust_targets:/rust-targets
+      - cargo_cache_git:/usr/local/cargo/git
+      - cargo_cache_registry:/usr/local/cargo/registry
+
+  python-plugins:
+    build: python-plugins
+    volumes:
+      - ./python-plugins/entrypoint.sh:/entrypoint.sh
+      - ./python-plugins:/src
+      - python_plugins:/python-plugins
+      - pip_cache:/root/.pip
