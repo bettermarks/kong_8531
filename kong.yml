@@ -38,3 +38,12 @@ services:
     paths:
     - /js
 
+- name: lua
+  url: http://reflector:8080/
+  plugins:
+  - name: luaplugin
+  routes:
+  - name: luaplugin
+    paths:
+    - /lua
+

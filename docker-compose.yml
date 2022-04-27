@@ -55,6 +55,7 @@ services:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /kong.yml
 
+
       KONG_PLUGINSERVER_NAMES: goplugin,rustplugin,pythonplugin,jsplugin
 
       KONG_PLUGINSERVER_GOPLUGIN_START_CMD: /go-plugins/goplugin -kong-prefix /usr/local/kong/
@@ -84,17 +85,19 @@ services:
         --dump-all-plugins
       KONG_PLUGINSERVER_JSPLUGIN_SOCKET: /usr/local/kong/jsplugin.socket
 
-      KONG_PLUGINS: ${KONG_PLUGINS-bundled, goplugin, rustplugin, pythonplugin, jsplugin}
+      # remember lua package path expects, a directory structure
+      # ../kong/plugins/<plugin>/*.lua to find the plugin
+      KONG_LUA_PACKAGE_PATH: /lua-plugins/?.lua;;
+      KONG_PLUGINS: bundled, goplugin, rustplugin, pythonplugin, jsplugin, luaplugin
+
     volumes:
+      # - ../kong_upstream/kong:/usr/local/share/lua/5.1/kong
       - ./kong.yml:/kong.yml
-      # - ../kong_upsream/kong:/usr/local/share/lua/5.1/kong
-      # if you want to use go-patch
-      # - "${BM_AUTHX_PATH}/bm-authx:/go-plugins/bm-authx"
-      # comment this out if using go-patch
       - go_plugins:/go-plugins
       - rust_plugins:/rust-plugins
       - python_plugins:/python-plugins
       - ./js-plugins:/js-plugins
+      - ./lua-plugins:/lua-plugins/kong/plugins
 
     ports:
       - 80:8080

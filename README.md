@@ -3,6 +3,7 @@
 ## setup
 
 We create a dummy plugin in each available PDK language:
+- [Lua](https://docs.konghq.com/gateway/latest/plugin-development/)
 - [Go](https://github.com/Kong/go-pdk)
 - [Python](https://github.com/Kong/kong-python-pdk)
 - [JavaScript](https://github.com/Kong/kong-js-pdk)
@@ -25,6 +26,12 @@ docker compose up > kong.log
 
 ``` bash
 (cd loadtest && cargo run --release -- --host http://localhost --no-reset-metrics --no-task-metrics -u 8 -t 20) > metrics.log
+```
+
+The loadtest accepts `LOADTEST_TASKS` environment var to select specific plugin tests:
+
+``` bash
+LOADTEST_TASKS=lua,python,js,go cargo run --release -- --host http://localhost
 ```
 
 ### kong reload
@@ -119,14 +126,15 @@ All 8 users hatched.
 
 ### Python plugin
 
-Python plugin is nearly stable and seems to "repair" its corruption.
+* is not graceful due to closed connections
+* plugin is nearly stable and seems to "repair" its corruption.
 
 
 ### Go plugin
 
 * is not graceful - there are closed connections
 * plugin is skipped/omitted, but reflection service reached (missing header) 
-* reaches a currupted state, where a certain rate of all consecutive requests are corrupt.
+* reaches a state, where a certain rate of all consecutive requests is corrupt.
 
 
 ### JavaScript plugin
@@ -134,6 +142,12 @@ Python plugin is nearly stable and seems to "repair" its corruption.
 * is not graceful - closed connections and also timeouts
 * plugin is skipped/omitted, but reflection service reached (missing header) 
 * reaches a state, where **all** consecutive requests are corrupt.
+
+
+### Lua plugin
+
+* is not graceful due to close connections
+* we were unable to trigger any corruption
 
 
 ### nginx worker 100% CPU
@@ -152,3 +166,14 @@ epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
 epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
 epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
 ```
+
+## summary
+
+* All plugin types resp. languages suffer from closed connections when reloading kong.
+* Lua and Python plugins seem to stay sane.
+* Go and JavaScript plugins end up in a currupted state, where the only way to fix this is to reload/restart without load (yes also cold restarts under load have their pitfalls).
+* JavaScript plugins seem to fail in 100 % of cases after curruption takes place.
+
+Since Python and JavaScript use `mp_rpc.lua` and their behavior is dramatically
+different, we conclude, that this issue is driven by the specific
+implementation of the plugin server.
