@@ -3,47 +3,10 @@ _transform: true
 
 services:
 - name: go
-  url: http://reflector:8080/
+  url: http://teapot:8080/
   plugins:
   - name: goplugin
   routes:
   - name: goplugin
     paths:
     - /go
-
-- name: rust
-  url: http://reflector:8080/
-  plugins:
-  - name: rustplugin
-  routes:
-  - name: rustplugin
-    paths:
-    - /rust
-
-- name: python
-  url: http://reflector:8080/
-  plugins:
-  - name: pythonplugin
-  routes:
-  - name: pythonplugin
-    paths:
-    - /python
-
-- name: js
-  url: http://reflector:8080/
-  plugins:
-  - name: jsplugin
-  routes:
-  - name: jsplugin
-    paths:
-    - /js
-
-- name: lua
-  url: http://reflector:8080/
-  plugins:
-  - name: luaplugin
-  routes:
-  - name: luaplugin
-    paths:
-    - /lua
-

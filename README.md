@@ -1,179 +1,124 @@
 # docker compose setup to reproduce https://github.com/Kong/kong/issues/8531
 
+> This branch contains a simplified setup
+
+## requirements
+* [hey](https://github.com/rakyll/hey) for load testing
+
 ## setup
 
-We create a dummy plugin in each available PDK language:
-- [Lua](https://docs.konghq.com/gateway/latest/plugin-development/)
+We create a go plugin, using the Go PDK, that returns 200 when it receives a request.
 - [Go](https://github.com/Kong/go-pdk)
-- [Python](https://github.com/Kong/kong-python-pdk)
-- [JavaScript](https://github.com/Kong/kong-js-pdk)
 
-Rust PDK is incomplete:
-- [Rust](https://github.com/jgramoll/kong-rust-pdk)
-
-Each plugin injects a specific header, e.g. `x-goplugin` and forwards the request to a simple reflection service, which the loadtest tests against to check if the plugin was intercepting the request. 
+Behind it is a teapot service that returns 418, so we know if the plugin
+was bypassed.
 
 We use Kong version `2.7.1`.
 
 
 ### kong
 
-``` bash
-docker compose up > kong.log
+```bash
+docker compose up --build kong > kong.log
+```
+
+Wait until kong and the plugin are healthy: look for something like
+```
+kong_8531-kong-1        | 2022/12/12 17:32:59 [info] 1131#0: *29 [goplugin:1142] 2022/12/12 17:32:59 Listening on socket: /usr/local/kong/goplugin.socket, context: ngx.timer
 ```
 
 ### loadtest
 
-``` bash
-(cd loadtest && cargo run --release -- --host http://localhost --no-reset-metrics --no-task-metrics -u 8 -t 20) > metrics.log
-```
-
-The loadtest accepts `LOADTEST_TASKS` environment var to select specific plugin tests:
-
-``` bash
-LOADTEST_TASKS=lua,python,js,go cargo run --release -- --host http://localhost
+```bash
+{ date; hey -c 8 -z 60s http://localhost/go; date; } > metrics.log &
 ```
 
 ### kong reload
 
-``` bash
-docker compose exec kong kong reload
+```bash
+sleep 1; docker compose exec kong kong reload
+```
+
+### wait for the loadtest to end
+``bash
+wait
 ```
 
 
 ## assumptions
 
-Kong serves under reasonable load - see [goose loadtest](https://goose.rs).
+Kong serves under reasonable load
 
 
 ## observations
 
-In every case we were able to DOS kong plugins by reload.
+
+On my machine it was not reliable whether the problem would happen every time.
+But at least 1 in 3.
 
 
 [metrics](metrics.log):
 
 ```
-All 8 users hatched.
+Mon 12 Dec 2022 18:59:00 CET
 
-22:18:33 [WARN] "/js": error sending request for url (http://localhost/js): connection closed before message completed
-22:18:33 [WARN] "/js": error sending request for url (http://localhost/js): connection closed before message completed
-22:18:33 [WARN] "/go": error sending request for url (http://localhost/go): connection closed before message completed
-22:18:33 [WARN] "/go": error sending request for url (http://localhost/go): connection closed before message completed
-22:18:33 [WARN] "/go": error sending request for url (http://localhost/go): connection closed before message completed
-22:18:54 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
-22:18:54 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
-22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
-22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
-22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
-22:18:55 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
-22:18:56 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
-22:18:56 [WARN] "/js": error sending request for url (http://localhost/js): operation timed out
+Summary:
+  Total:	79.2675 secs
+  Slowest:	15.1998 secs
+  Fastest:	0.0011 secs
+  Average:	0.2436 secs
+  Requests/sec:	23.2756
+  
+  Total data:	1050 bytes
+  Size/request:	0 bytes
 
- === PER REQUEST METRICS ===
- ------------------------------------------------------------------------------
- Name                     |        # reqs |        # fails |    req/s |  fail/s
- ------------------------------------------------------------------------------
- GET /go                  |        14,312 |     282 (2.0%) |   715.60 |   14.10
- GET /js                  |        14,320 |     618 (4.3%) |   716.00 |   30.90
- GET /python              |        14,320 |         2 (0%) |   716.00 |    0.10
- -------------------------+---------------+----------------+----------+--------
- Aggregated               |        42,952 |     902 (2.1%) |     2148 |   45.10
- ------------------------------------------------------------------------------
- Name                     |    Avg (ms) |        Min |         Max |     Median
- ------------------------------------------------------------------------------
- GET /go                  |        0.93 |          1 |         202 |          1
- GET /js                  |       13.70 |          1 |      20,001 |          2
- GET /python              |        1.93 |          1 |       2,061 |          1
- -------------------------+-------------+------------+-------------+-----------
- Aggregated               |        5.52 |          1 |      20,001 |          1
- ------------------------------------------------------------------------------
- Slowest page load within specified percentile of requests (in ms):
- ------------------------------------------------------------------------------
- Name                     |    50% |    75% |    98% |    99% |  99.9% | 99.99%
- ------------------------------------------------------------------------------
- GET /go                  |      1 |      1 |      3 |      4 |     11 |    200
- GET /js                  |      2 |      3 |      6 |      8 |     54 | 20,000
- GET /python              |      1 |      2 |      4 |      5 |     19 |    430
- -------------------------+--------+--------+--------+--------+--------+-------
- Aggregated               |      1 |      2 |      5 |      6 |     25 | 20,000
+Response time histogram:
+  0.001 [1]	|
+  1.521 [1832]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  3.041 [3]	|
+  4.561 [2]	|
+  6.081 [0]	|
+  7.600 [0]	|
+  9.120 [0]	|
+  10.640 [0]	|
+  12.160 [1]	|
+  13.680 [0]	|
+  15.200 [2]	|
 
- === ERRORS ===
- ------------------------------------------------------------------------------
- Count       | Error
- ------------------------------------------------------------------------------
- 608           GET /js: plugin header missing
- 279           GET /go: plugin header missing
- 8             GET /js: error sending request /js: operation timed out
- 3             GET /go: error sending request /go: connection closed before message completed
- 2             GET /python: plugin header missing
- 2             GET /js: error sending request /js: connection closed before message completed
- ------------------------------------------------------------------------------
- ------------------------------------------------------------------------------
- Users: 8
- Target host: http://localhost/
- Starting: 2022-04-27 00:18:19 - 2022-04-27 00:18:26 (duration: 00:00:07)
- Running:  2022-04-27 00:18:26 - 2022-04-27 00:18:46 (duration: 00:00:20)
- Stopping: 2022-04-27 00:18:46 - 2022-04-27 00:18:56 (duration: 00:00:10)
 
- goose v0.15.2
- ------------------------------------------------------------------------------
+Latency distribution:
+  10% in 0.0957 secs
+  25% in 0.1003 secs
+  50% in 0.1978 secs
+  75% in 0.2977 secs
+  90% in 0.4007 secs
+  95% in 0.5983 secs
+  99% in 1.1022 secs
 
+Details (average, fastest, slowest):
+  DNS+dialup:	0.0000 secs, 0.0011 secs, 15.1998 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0031 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0020 secs
+  resp wait:	0.2433 secs, 0.0010 secs, 15.1982 secs
+  resp read:	0.0001 secs, 0.0000 secs, 0.0020 secs
+
+Status code distribution:
+  [200]	1814 responses
+  [418]	2 responses
+  [500]	25 responses
+
+Error distribution:
+  [4]	Get "http://localhost/go": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
+
+Mon 12 Dec 2022 19:00:19 CET
 ```
 
 [error log](kong.log) contains further details.
 
 
-### Python plugin
-
-* is not graceful due to closed connections
-* plugin is nearly stable and seems to "repair" its corruption.
-
-
 ### Go plugin
 
 * is not graceful - there are closed connections
-* plugin is skipped/omitted, but reflection service reached (missing header) 
+* plugin is skipped/omitted, but teapot service reached (status 418)
 * reaches a state, where a certain rate of all consecutive requests is corrupt.
 
-
-### JavaScript plugin
-
-* is not graceful - closed connections and also timeouts
-* plugin is skipped/omitted, but reflection service reached (missing header) 
-* reaches a state, where **all** consecutive requests are corrupt.
-
-
-### Lua plugin
-
-* is not graceful due to close connections
-* we were unable to trigger any corruption
-
-
-### nginx worker 100% CPU
-
-Sometimes a nginx worker turns crazy by consuming 100% CPU - `strace` shows:
-
-```
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-epoll_pwait(50, [], 512, 0, NULL, 8)    = 0
-```
-
-## summary
-
-* All plugin types resp. languages suffer from closed connections when reloading kong.
-* Lua and Python plugins seem to stay sane.
-* Go and JavaScript plugins end up in a currupted state, where the only way to fix this is to reload/restart without load (yes also cold restarts under load have their pitfalls).
-* JavaScript plugins seem to fail in 100 % of cases after curruption takes place.
-
-Since Python and JavaScript use `mp_rpc.lua` and their behavior is dramatically
-different, we conclude, that this issue is driven by the specific
-implementation of the plugin server.

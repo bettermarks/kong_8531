@@ -5,37 +5,18 @@ volumes:
   go_src:
   go_pkg:
   go_build_cache:
-  rust_plugins:
-  rust_targets:
-  cargo_cache_git:
-  cargo_cache_registry:
-  python_plugins:
-  pip_cache:
 
 services:
-  reflector:
-    build: reflector
+  teapot:
+    build: teapot
 
   kong:
-    # image: kong:${KONG_VERSION}
-    build: kong
+    image: kong:2.7.1
     depends_on:
-      reflector:
+      teapot:
         condition: service_started
       go-plugins:
           condition: service_completed_successfully
-      rust-plugins:
-          condition: service_completed_successfully
-      python-plugins:
-          condition: service_completed_successfully
-    #   mongo:
-    #       condition: service_started
-    #   kong-db:
-    #       condition: service_healthy
-    #   kong-db-migrations:
-    #       condition: service_completed_successfully
-    # networks:
-    #   - kong
     deploy:
       resources:
         limits:
@@ -55,49 +36,17 @@ services:
       KONG_DATABASE: "off"
       KONG_DECLARATIVE_CONFIG: /kong.yml
 
-
-      KONG_PLUGINSERVER_NAMES: goplugin,rustplugin,pythonplugin,jsplugin
+      KONG_PLUGINSERVER_NAMES: goplugin
 
       KONG_PLUGINSERVER_GOPLUGIN_START_CMD: /go-plugins/goplugin -kong-prefix /usr/local/kong/
       KONG_PLUGINSERVER_GOPLUGIN_QUERY_CMD: /go-plugins/goplugin -dump
       KONG_PLUGINSERVER_GOPLUGIN_SOCKET: /usr/local/kong/goplugin.socket
 
-      KONG_PLUGINSERVER_RUSTPLUGIN_START_CMD: /rust-plugins/rustplugin -kong-prefix /usr/local/kong/
-      KONG_PLUGINSERVER_RUSTPLUGIN_QUERY_CMD: /rust-plugins/rustplugin -dump
-      KONG_PLUGINSERVER_RUSTPLUGIN_SOCKET: /usr/local/kong/rustplugin.socket
-
-      KONG_PLUGINSERVER_PYTHONPLUGIN_START_CMD: >
-        /python-plugins/pythonplugin
-        --kong-prefix /usr/local/kong/
-        --socket-name /usr/local/kong/pythonplugin.socket
-        --no-lua-style
-        --gevent
-      KONG_PLUGINSERVER_PYTHONPLUGIN_QUERY_CMD: /python-plugins/pythonplugin --dump
-      KONG_PLUGINSERVER_PYTHONPLUGIN_SOCKET: /usr/local/kong/pythonplugin.socket
-
-      KONG_PLUGINSERVER_JSPLUGIN_START_CMD: >
-        /usr/local/bin/kong-js-pluginserver
-        --sock-name jsplugin.socket
-        --plugins-directory /js-plugins
-      KONG_PLUGINSERVER_JSPLUGIN_QUERY_CMD: >
-        /usr/local/bin/kong-js-pluginserver
-        --plugins-directory /js-plugins
-        --dump-all-plugins
-      KONG_PLUGINSERVER_JSPLUGIN_SOCKET: /usr/local/kong/jsplugin.socket
-
-      # remember lua package path expects, a directory structure
-      # ../kong/plugins/<plugin>/*.lua to find the plugin
-      KONG_LUA_PACKAGE_PATH: /lua-plugins/?.lua;;
-      KONG_PLUGINS: bundled, goplugin, rustplugin, pythonplugin, jsplugin, luaplugin
+      KONG_PLUGINS: bundled, goplugin
 
     volumes:
-      # - ../kong_upstream/kong:/usr/local/share/lua/5.1/kong
       - ./kong.yml:/kong.yml
       - go_plugins:/go-plugins
-      - rust_plugins:/rust-plugins
-      - python_plugins:/python-plugins
-      - ./js-plugins:/js-plugins
-      - ./lua-plugins:/lua-plugins/kong/plugins
 
     ports:
       - 80:8080
@@ -106,7 +55,7 @@ services:
       test: kong health
       interval: 10s
       timeout: 2s
-      retries: 3
+      retries: 10
 
   go-plugins:
     build: go-plugins
@@ -118,21 +67,3 @@ services:
       - go_src:/go/src
       - go_pkg:/go/pkg
       - go_build_cache:/root/.cache/go-build
-
-  rust-plugins:
-    build: rust-plugins
-    volumes:
-      - ./rust-plugins/entrypoint.sh:/entrypoint.sh
-      - ./rust-plugins:/src
-      - rust_plugins:/rust-plugins
-      - rust_targets:/rust-targets
-      - cargo_cache_git:/usr/local/cargo/git
-      - cargo_cache_registry:/usr/local/cargo/registry
-
-  python-plugins:
-    build: python-plugins
-    volumes:
-      - ./python-plugins/entrypoint.sh:/entrypoint.sh
-      - ./python-plugins:/src
-      - python_plugins:/python-plugins
-      - pip_cache:/root/.pip
