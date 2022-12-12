@@ -11,7 +11,7 @@ services:
     build: teapot
 
   kong:
-    image: kong:2.8.1
+    image: kong:3.1.0
     depends_on:
       teapot:
         condition: service_started

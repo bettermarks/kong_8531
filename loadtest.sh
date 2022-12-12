@@ -6,7 +6,7 @@ set -x
 
 {
     date
-    hey -c 8 -z 60s http://localhost/go
+    hey -c 8 -z 2m http://localhost/go
     date
 } > metrics.log &
 

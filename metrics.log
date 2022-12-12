@@ -1,50 +1,48 @@
-Mon 12 Dec 2022 19:15:50 CET
+Mon 12 Dec 2022 19:32:51 CET
 
 Summary:
-  Total:	60.0452 secs
-  Slowest:	9.7960 secs
-  Fastest:	0.0009 secs
-  Average:	0.1953 secs
-  Requests/sec:	40.9525
+  Total:	123.3744 secs
+  Slowest:	19.8986 secs
+  Fastest:	0.0006 secs
+  Average:	0.2654 secs
+  Requests/sec:	22.6546
   
-  Total data:	5586 bytes
-  Size/request:	2 bytes
 
 Response time histogram:
   0.001 [1]	|
-  0.980 [2434]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-  1.960 [16]	|
-  2.939 [0]	|
-  3.919 [0]	|
-  4.898 [2]	|
-  5.878 [0]	|
-  6.857 [0]	|
-  7.837 [0]	|
-  8.816 [2]	|
-  9.796 [4]	|
+  1.990 [2779]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  3.980 [1]	|
+  5.970 [0]	|
+  7.960 [0]	|
+  9.950 [0]	|
+  11.939 [0]	|
+  13.929 [0]	|
+  15.919 [0]	|
+  17.909 [0]	|
+  19.899 [2]	|
 
 
 Latency distribution:
-  10% in 0.0078 secs
-  25% in 0.0967 secs
-  50% in 0.1019 secs
-  75% in 0.2014 secs
-  90% in 0.3063 secs
-  95% in 0.5008 secs
-  99% in 0.9994 secs
+  10% in 0.0984 secs
+  25% in 0.1017 secs
+  50% in 0.2001 secs
+  75% in 0.3014 secs
+  90% in 0.4988 secs
+  95% in 0.6018 secs
+  99% in 1.0972 secs
 
 Details (average, fastest, slowest):
-  DNS+dialup:	0.0000 secs, 0.0009 secs, 9.7960 secs
-  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0034 secs
-  req write:	0.0000 secs, 0.0000 secs, 0.0006 secs
-  resp wait:	0.1950 secs, 0.0009 secs, 9.6957 secs
-  resp read:	0.0001 secs, 0.0000 secs, 0.0016 secs
+  DNS+dialup:	0.0000 secs, 0.0006 secs, 19.8986 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0020 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0010 secs
+  resp wait:	0.2653 secs, 0.0006 secs, 19.8968 secs
+  resp read:	0.0001 secs, 0.0000 secs, 0.0009 secs
 
 Status code distribution:
-  [200]	1643 responses
-  [418]	683 responses
-  [500]	133 responses
+  [200]	2781 responses
+  [418]	2 responses
 
+Error distribution:
+  [12]	Get "http://localhost/go": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 
-
-Mon 12 Dec 2022 19:16:50 CET
+Mon 12 Dec 2022 19:34:55 CET
