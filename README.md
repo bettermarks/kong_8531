@@ -40,7 +40,7 @@ sleep 1; docker compose exec kong kong reload
 ```
 
 ### wait for the loadtest to end
-``bash
+```bash
 wait
 ```
 
