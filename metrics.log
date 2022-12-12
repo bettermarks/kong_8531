@@ -1,51 +1,50 @@
-Mon 12 Dec 2022 18:59:00 CET
+Mon 12 Dec 2022 19:15:50 CET
 
 Summary:
-  Total:	79.2675 secs
-  Slowest:	15.1998 secs
-  Fastest:	0.0011 secs
-  Average:	0.2436 secs
-  Requests/sec:	23.2756
+  Total:	60.0452 secs
+  Slowest:	9.7960 secs
+  Fastest:	0.0009 secs
+  Average:	0.1953 secs
+  Requests/sec:	40.9525
   
-  Total data:	1050 bytes
-  Size/request:	0 bytes
+  Total data:	5586 bytes
+  Size/request:	2 bytes
 
 Response time histogram:
   0.001 [1]	|
-  1.521 [1832]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
-  3.041 [3]	|
-  4.561 [2]	|
-  6.081 [0]	|
-  7.600 [0]	|
-  9.120 [0]	|
-  10.640 [0]	|
-  12.160 [1]	|
-  13.680 [0]	|
-  15.200 [2]	|
+  0.980 [2434]	|■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■■
+  1.960 [16]	|
+  2.939 [0]	|
+  3.919 [0]	|
+  4.898 [2]	|
+  5.878 [0]	|
+  6.857 [0]	|
+  7.837 [0]	|
+  8.816 [2]	|
+  9.796 [4]	|
 
 
 Latency distribution:
-  10% in 0.0957 secs
-  25% in 0.1003 secs
-  50% in 0.1978 secs
-  75% in 0.2977 secs
-  90% in 0.4007 secs
-  95% in 0.5983 secs
-  99% in 1.1022 secs
+  10% in 0.0078 secs
+  25% in 0.0967 secs
+  50% in 0.1019 secs
+  75% in 0.2014 secs
+  90% in 0.3063 secs
+  95% in 0.5008 secs
+  99% in 0.9994 secs
 
 Details (average, fastest, slowest):
-  DNS+dialup:	0.0000 secs, 0.0011 secs, 15.1998 secs
-  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0031 secs
-  req write:	0.0000 secs, 0.0000 secs, 0.0020 secs
-  resp wait:	0.2433 secs, 0.0010 secs, 15.1982 secs
-  resp read:	0.0001 secs, 0.0000 secs, 0.0020 secs
+  DNS+dialup:	0.0000 secs, 0.0009 secs, 9.7960 secs
+  DNS-lookup:	0.0000 secs, 0.0000 secs, 0.0034 secs
+  req write:	0.0000 secs, 0.0000 secs, 0.0006 secs
+  resp wait:	0.1950 secs, 0.0009 secs, 9.6957 secs
+  resp read:	0.0001 secs, 0.0000 secs, 0.0016 secs
 
 Status code distribution:
-  [200]	1814 responses
-  [418]	2 responses
-  [500]	25 responses
+  [200]	1643 responses
+  [418]	683 responses
+  [500]	133 responses
 
-Error distribution:
-  [4]	Get "http://localhost/go": context deadline exceeded (Client.Timeout exceeded while awaiting headers)
 
-Mon 12 Dec 2022 19:00:19 CET
+
+Mon 12 Dec 2022 19:16:50 CET
