@@ -1,0 +1,6 @@
+plugins = bundled,goplugin
+pluginserver_names = goplugin
+
+pluginserver_goplugin_start_cmd = /go-plugins/goplugin -kong-prefix /usr/local/kong/blue/
+pluginserver_goplugin_query_cmd = /go-plugins/goplugin -dump
+pluginserver_goplugin_socket = /usr/local/kong/blue/goplugin.socket

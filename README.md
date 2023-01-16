@@ -2,6 +2,8 @@
 
 > This branch contains a simplified setup
 
+> !! Here we attempted a green blue deployment 
+
 ## requirements
 * [hey](https://github.com/rakyll/hey) for load testing
 
@@ -13,10 +15,13 @@ We create a go plugin, using the Go PDK, that returns 200 when it receives a req
 Behind it is a teapot service that returns 418, so we know if the plugin
 was bypassed.
 
-We use Kong version `2.7.1`.
+We use Kong version `3.1.0`.
 
 
 ### kong
+
+> Small prep: `mkdir -p tmp/blue tmp/green` .
+> These are used for the separate green and blue sockets
 
 ```bash
 docker compose up --build kong > kong.log
@@ -30,13 +35,13 @@ kong_8531-kong-1        | 2022/12/12 17:32:59 [info] 1131#0: *29 [goplugin:1142]
 ### loadtest
 
 ```bash
-{ date; hey -c 8 -z 60s http://localhost/go; date; } > metrics.log &
+{ date; hey -c 8 -z 120s http://localhost/go; date; } > metrics.log &
 ```
 
 ### kong reload
 
 ```bash
-sleep 1; docker compose exec kong kong reload
+sleep 1; docker compose exec kong kong-reload.sh
 ```
 
 ### wait for the loadtest to end
@@ -116,7 +121,7 @@ Mon 12 Dec 2022 19:00:19 CET
 [error log](kong.log) contains further details.
 
 
-### Go plugin
+### Analysis
 
 * is not graceful - there are closed connections
 * plugin is skipped/omitted, but teapot service reached (status 418)
